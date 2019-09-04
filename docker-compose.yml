@@ -4,6 +4,10 @@ services:
     image: postgres:11.5-alpine
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=bank
+      - POSTGRES_USER=bank
+      - POSTGRES_DB=bank
 
   nginx:
     image: nginx:latest
@@ -12,6 +16,15 @@ services:
 
   api:
     build: './api'
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=bank
+      - POSTGRES_USER=bank
+      - POSTGRES_DB=bank
+    # TODO: разобраться, как рестартить сервисы
+    # WARNING: Some services (api) use the 'deploy' key, which will be ignored.
+    # Compose does not support 'deploy' configuration - use `docker stack deploy` to deploy to a swarm
     deploy:
       replicas: 2
       restart_policy:
@@ -20,6 +33,14 @@ services:
 
   substractor:
     build: './substractor'
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_PASSWORD=bank
+      - POSTGRES_USER=bank
+      - POSTGRES_DB=bank
 
   dashboard:
     build: './dashboard'
+    environment:
+      - API_HOST=http://api/
