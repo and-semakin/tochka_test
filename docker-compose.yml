@@ -10,8 +10,13 @@ services:
     ports:
       - "80:80"
 
-  web:
-    build: './web'
+  api:
+    build: './api'
+    deploy:
+      replicas: 2
+      restart_policy:
+        condition: on-failure
+        max_attempts: 3
 
   substractor:
     build: './substractor'
