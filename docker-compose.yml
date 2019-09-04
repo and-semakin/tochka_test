@@ -31,8 +31,8 @@ services:
         condition: on-failure
         max_attempts: 3
 
-  substractor:
-    build: './substractor'
+  subtractor:
+    build: './subtractor'
     environment:
       - POSTGRES_HOST=postgres
       - POSTGRES_PORT=5432
