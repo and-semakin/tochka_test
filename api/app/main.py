@@ -1,3 +1,5 @@
+from typing import List
+import random
 import asyncpg
 from aiohttp import web
 
@@ -16,8 +18,15 @@ async def cleanup(app: web.Application):
 
 
 async def ping(*args):
+    answers: List[str] = [
+        "I'm ok!",
+        "I'm fine!",
+        "I am still alive!",
+        "Don't hurt me please",
+    ]
     return web.json_response({
-        'status': 'I am still alive!',
+        'status': 'ok',
+        'answer': random.choice(answers),
     }, status=200)
 
 
