@@ -3,13 +3,11 @@ import random
 import asyncpg
 from aiohttp import web
 
-from .db import prepare_database
 from .settings import Settings
 
 
 async def startup(app: web.Application):
     settings: Settings = app['settings']
-    await prepare_database(settings, False)
     app['pg'] = await asyncpg.create_pool(dsn=settings.pg_dsn, min_size=2)
 
 
