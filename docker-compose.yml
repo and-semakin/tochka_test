@@ -10,7 +10,7 @@ services:
       - POSTGRES_DB=bank
 
   nginx:
-    image: nginx:latest
+    build: './nginx'
     ports:
       - "80:80"
 
@@ -22,14 +22,18 @@ services:
       - POSTGRES_PASSWORD=bank
       - POSTGRES_USER=bank
       - POSTGRES_DB=bank
-    # TODO: разобраться, как рестартить сервисы
-    # WARNING: Some services (api) use the 'deploy' key, which will be ignored.
-    # Compose does not support 'deploy' configuration - use `docker stack deploy` to deploy to a swarm
-    deploy:
-      replicas: 2
-      restart_policy:
-        condition: on-failure
-        max_attempts: 3
+    # TODO: убрать, когда прекратится разработка
+    command: pipenv run adev runserver --port 80 app
+    volumes:
+      - "./api/:/api"
+# TODO: разобраться, как рестартить сервисы
+# WARNING: Some services (api) use the 'deploy' key, which will be ignored.
+# Compose does not support 'deploy' configuration - use `docker stack deploy` to deploy to a swarm
+#    deploy:
+#      replicas: 2
+#      restart_policy:
+#        condition: on-failure
+#        max_attempts: 3
 
   subtractor:
     build: './subtractor'
