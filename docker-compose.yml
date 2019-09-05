@@ -17,11 +17,11 @@ services:
   api:
     build: './api'
     environment:
-      - POSTGRES_HOST=postgres
-      - POSTGRES_PORT=5432
-      - POSTGRES_PASSWORD=bank
-      - POSTGRES_USER=bank
-      - POSTGRES_DB=bank
+      - APP_POSTGRES_HOST=postgres
+      - APP_POSTGRES_PORT=5432
+      - APP_POSTGRES_USER=bank
+      - APP_POSTGRES_PASSWORD=bank
+      - APP_POSTGRES_DB=bank
     # TODO: убрать, когда прекратится разработка
     command: pipenv run adev runserver --port 80 app
     volumes:
