@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     See https://pydantic-docs.helpmanual.io/#settings for details on using and overriding this
     """
     name = 'api'
-    pg_dsn = 'postgres://postgres@localhost:5432/demo_app'
+    pg_dsn = 'postgres://bank:bank@postgres:5432/bank'
 
     @property
     def _pg_dsn_parsed(self):
