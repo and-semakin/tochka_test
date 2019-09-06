@@ -29,6 +29,7 @@ services:
     depends_on:
       - postgres
       - nginx
+    restart: on-failure
 # TODO: разобраться, как рестартить сервисы
 # WARNING: Some services (api) use the 'deploy' key, which will be ignored.
 # Compose does not support 'deploy' configuration - use `docker stack deploy` to deploy to a swarm
@@ -52,6 +53,7 @@ services:
       - "./api/:/api"
     depends_on:
       - postgres
+    restart: always
 
   dashboard:
     build: './dashboard'
