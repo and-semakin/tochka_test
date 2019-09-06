@@ -162,7 +162,8 @@ async def json_middleware(request: web.Request, handler) -> web.Response:
         value = json_data[arg]
         if not isinstance(value, expected_type):
             errors.append(
-                f"Expected type of {arg} is {expected_type.__name__}, but {type(value).__name__} was passed"
+                f"Expected type of {arg} is {expected_type.__name__}, "
+                f"but {type(value).__name__} was passed"
             )
 
     for arg, value in json_data.items():

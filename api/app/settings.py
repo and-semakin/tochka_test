@@ -2,9 +2,7 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    """
-    See https://pydantic-docs.helpmanual.io/#settings for details on using and overriding this
-    """
+    """Переменные `APP_*` перезаписывают поля этого класса."""
 
     postgres_host = "localhost"
     postgres_port = 5432
