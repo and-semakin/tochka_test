@@ -9,6 +9,8 @@ mypy = "*"
 black = "*"
 pytest = "*"
 flake8 = "*"
+pytest-asyncio = "*"
+pytest-aiohttp = "*"
 
 [packages]
 aiohttp = "*"
