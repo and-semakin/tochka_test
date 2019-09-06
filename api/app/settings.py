@@ -5,16 +5,17 @@ class Settings(BaseSettings):
     """
     See https://pydantic-docs.helpmanual.io/#settings for details on using and overriding this
     """
-    postgres_host = 'localhost'
+
+    postgres_host = "localhost"
     postgres_port = 5432
-    postgres_user = 'user'
-    postgres_password = 'secret'
-    postgres_db = 'db'
+    postgres_user = "user"
+    postgres_password = "secret"
+    postgres_db = "db"
     subtract_interval = 600
 
     @property
     def pg_dsn(self) -> str:
         return (
-            f'postgres://{self.postgres_user}:{self.postgres_password}@'
-            f'{self.postgres_host}:{self.postgres_port}/{self.postgres_db}'
+            f"postgres://{self.postgres_user}:{self.postgres_password}@"
+            f"{self.postgres_host}:{self.postgres_port}/{self.postgres_db}"
         )

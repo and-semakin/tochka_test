@@ -6,13 +6,13 @@ from aiohttp import web
 from .main import create_app
 from .subtractor import periodic_subtract
 
-SERVER = 'server'
-SUBTRACTOR = 'subtractor'
+SERVER = "server"
+SUBTRACTOR = "subtractor"
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument('mode', choices=[SERVER, SUBTRACTOR])
+    parser.add_argument("mode", choices=[SERVER, SUBTRACTOR])
     args = parser.parse_args()
 
     if args.mode == SERVER:
@@ -23,5 +23,5 @@ def main() -> None:
         raise NotImplementedError
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

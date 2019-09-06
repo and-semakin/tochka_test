@@ -9,21 +9,21 @@ logging.basicConfig(level=logging.INFO)
 
 
 async def subtract(connection: asyncpg.Connection) -> None:
-    logging.info('Subtracting holds from balances...')
+    logging.info("Subtracting holds from balances...")
     async with connection.transaction():
         await connection.execute(
-            '''
+            """
             UPDATE
                 client
             SET
                 balance = balance - hold,
                 hold = 0
-            '''
+            """
         )
 
 
 async def periodic_subtract() -> None:
-    logging.info('Starting...')
+    logging.info("Starting...")
     settings = Settings()
     connection = await asyncpg.connect(dsn=settings.pg_dsn)
     while True:
