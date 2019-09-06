@@ -6,4 +6,4 @@ RUN pip install pipenv \
     && pipenv install --dev
 COPY ./ ./
 EXPOSE 80
-CMD pipenv run python app/main.py
+CMD pipenv run python -m app server

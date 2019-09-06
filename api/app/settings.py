@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     postgres_user = 'user'
     postgres_password = 'secret'
     postgres_db = 'db'
+    subtract_interval = 600
 
     @property
     def pg_dsn(self) -> str:
