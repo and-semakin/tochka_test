@@ -5,6 +5,10 @@ verify_ssl = true
 
 [dev-packages]
 aiohttp-devtools = "*"
+mypy = "*"
+black = "*"
+pytest = "*"
+flake8 = "*"
 
 [packages]
 aiohttp = "*"
@@ -13,3 +17,6 @@ pydantic = "*"
 
 [requires]
 python_version = "3.7"
+
+[pipenv]
+allow_prereleases = true
