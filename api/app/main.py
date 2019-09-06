@@ -114,7 +114,6 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
                 UPDATE
                     client
                 SET
-                    balance = balance - $2,
                     hold = hold + $2
                 WHERE
                     id = $1
@@ -125,7 +124,7 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
             )
             if not row:
                 raise web.HTTPNotFound()
-            if row["balance"] < 0:
+            if row["balance"] - row["hold"] < 0:
                 raise web.HTTPPaymentRequired()
             return json_response(dict(row.items()))
 
@@ -222,10 +221,9 @@ async def error_middleware(request: web.Request, handler) -> web.Response:
         )
 
 
-async def create_app() -> web.Application:
+async def create_app(settings: Settings = Settings()) -> web.Application:
     """Создать и настроить приложение aiohttp."""
     app = web.Application(middlewares=[error_middleware, json_middleware])
-    settings = Settings()
     app.update(settings=settings)
 
     app.on_startup.append(startup)
