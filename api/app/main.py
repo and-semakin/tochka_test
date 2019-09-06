@@ -1,11 +1,12 @@
 from typing import Any, List
 import sys
 import random
-import asyncpg
 import functools
 import json
 import inspect
 import logging
+
+import asyncpg
 from aiohttp import web
 
 from .settings import Settings
@@ -18,7 +19,13 @@ def json_response(
     status: int = 200,
     **kwargs,
 ) -> web.Response:
-    """JSON ответ, сформированный по шаблону."""
+    """JSON ответ, сформированный по шаблону.
+
+    :param addition: данные для ответа
+    :param operation_status: успешна ли операция
+    :param description: текстовое описание ответа
+    :param status: HTTP код ответа
+    """
     return web.json_response(
         {
             "status": status,
@@ -26,14 +33,15 @@ def json_response(
             "addition": addition,
             "description": description,
         },
-        **kwargs,
         status=status,
         dumps=functools.partial(json.dumps, ensure_ascii=False),
+        **kwargs,
     )
 
 
 async def init_connection(conn: asyncpg.Connection) -> None:
     """Инициализация отдельного соединения в пуле."""
+    # делаем так, чтобы тип UUID преобразовывался в строку при извлечении из базы
     await conn.set_type_codec("uuid", encoder=str, decoder=str, schema="pg_catalog")
 
 
@@ -57,10 +65,10 @@ async def ping(request: web.Request) -> web.Response:
         "I am still alive!",
         "Don't hurt me please",
     ]
-    return web.json_response({"status": "ok", "answer": random.choice(answers)})
+    return json_response(operation_status=True, description=random.choice(answers))
 
 
-async def kill(request: web.Request) -> None:
+async def kill(request: web.Request) -> web.Response:
     """Хэндлер, который убивает сервер, чтобы проверить настройку перезапуска."""
     sys.exit(42)
 
@@ -203,9 +211,10 @@ async def create_app() -> web.Application:
     app.on_startup.append(startup)
     app.on_cleanup.append(cleanup)
 
+    # маршрутизация
     app.router.add_get("/api/ping", ping, name="ping")
     app.router.add_get("/api/kill", kill, name="kill")
-    app.router.add_post("/api/add", add, name="add")
-    app.router.add_post("/api/subtract", subtract, name="subtract")
-    app.router.add_post("/api/status", status, name="status")
+    app.router.add_post("/api/add", add, name="add")  # type: ignore
+    app.router.add_post("/api/subtract", subtract, name="subtract")  # type: ignore
+    app.router.add_post("/api/status", status, name="status")  # type: ignore
     return app
