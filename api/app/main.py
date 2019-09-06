@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Callable, Mapping
 import sys
 import random
 import functools
@@ -9,7 +9,7 @@ import logging
 import asyncpg
 from aiohttp import web
 
-from .settings import Settings
+from app.settings import Settings
 
 
 def json_response(
@@ -144,6 +144,44 @@ async def status(request: web.Request, uuid: str) -> web.Response:
         return json_response(dict(row.items()))
 
 
+def _check_args(handler: Callable, args: Mapping[str, Any]) -> List[str]:
+    """Функция, которая валидирует переданные через JSON аргументы.
+
+    :param handler: хэндлер
+    :param args: словарь с аргументами из JSON
+    :returns: список ошибок; если ошибок нет, то список пустой
+    """
+    errors = []
+
+    # получаем информацию о сигнатуре хэндлера
+    handler_fullargspec = inspect.getfullargspec(handler)
+
+    # проходимся по аргументами хэндлера
+    for arg, expected_type in handler_fullargspec.annotations.items():
+        # `request` -- обязательный аргумент хэндлера, но он поступает не из JSON
+        # `return` -- зарезервированное значение для аннотации возвращаемого значения
+        if arg in ("request", "return"):
+            continue
+
+        if arg not in args:
+            errors.append(f"{arg} is required but it is missing")
+            continue
+
+        value = args[arg]
+        if not isinstance(value, expected_type):
+            errors.append(
+                f"Expected type of {arg} is {expected_type.__name__}, "
+                f"but {type(value).__name__} was passed"
+            )
+
+    # если в JSON содержатся лишние данные, то это тоже проблема
+    for arg, value in args.items():
+        if arg not in handler_fullargspec.args:
+            errors.append(f"Redundant arg {arg}")
+
+    return errors
+
+
 @web.middleware
 async def json_middleware(request: web.Request, handler) -> web.Response:
     """Требовать наличия JSON содержимого во всех запросах, кроме GET."""
@@ -159,25 +197,7 @@ async def json_middleware(request: web.Request, handler) -> web.Response:
             description="Please send request in JSON format",
         )
 
-    errors = []
-    handler_fullargspec = inspect.getfullargspec(handler)
-    for arg, expected_type in handler_fullargspec.annotations.items():
-        if arg in ("request", "return"):
-            continue
-        if arg not in json_data:
-            errors.append(f"{arg} is required but it is missing")
-            continue
-        value = json_data[arg]
-        if not isinstance(value, expected_type):
-            errors.append(
-                f"Expected type of {arg} is {expected_type.__name__}, "
-                f"but {type(value).__name__} was passed"
-            )
-
-    for arg, value in json_data.items():
-        if arg not in handler_fullargspec.args:
-            errors.append(f"Redundant arg {arg}")
-
+    errors = _check_args(handler, json_data)
     if not errors:
         return await handler(request, **json_data)
 

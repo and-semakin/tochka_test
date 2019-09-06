@@ -3,7 +3,7 @@ import logging
 
 import asyncpg
 
-from .settings import Settings
+from app.settings import Settings
 
 logging.basicConfig(level=logging.INFO)
 

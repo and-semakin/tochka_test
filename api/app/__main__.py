@@ -3,8 +3,8 @@ import asyncio
 
 from aiohttp import web
 
-from .main import create_app
-from .subtractor import periodic_subtract
+from app.main import create_app
+from app.subtractor import periodic_subtract
 
 SERVER = "server"
 SUBTRACTOR = "subtractor"
