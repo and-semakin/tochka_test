@@ -6,7 +6,9 @@ class NotEnoughMoneyError(Exception):
     """Ошибка, возникающая, если у клиента недостаточно денег."""
 
 
-async def query_add(connection: asyncpg.Connection, uuid: str, how_much: int) -> Optional[asyncpg.Record]:
+async def query_add(
+    connection: asyncpg.Connection, uuid: str, how_much: int
+) -> Optional[asyncpg.Record]:
     """Запрос для пополнения счёта клинта.
 
     :param connection: соединение
@@ -21,7 +23,7 @@ async def query_add(connection: asyncpg.Connection, uuid: str, how_much: int) ->
             SET
                 balance = balance + GREATEST(0, $2)
             WHERE
-                id = $1 AND 
+                id = $1 AND
                 is_open = TRUE
             RETURNING *
             """,
@@ -31,7 +33,9 @@ async def query_add(connection: asyncpg.Connection, uuid: str, how_much: int) ->
         return row
 
 
-async def query_subtract(connection: asyncpg.Connection, uuid: str, how_much: int) -> Optional[asyncpg.Record]:
+async def query_subtract(
+    connection: asyncpg.Connection, uuid: str, how_much: int
+) -> Optional[asyncpg.Record]:
     """Запрос на снятие указанной суммы со счёта клиента.
 
     :param connection: соединение
@@ -59,7 +63,9 @@ async def query_subtract(connection: asyncpg.Connection, uuid: str, how_much: in
         return row
 
 
-async def query_status(connection: asyncpg.Connection, uuid: str) -> Optional[asyncpg.Record]:
+async def query_status(
+    connection: asyncpg.Connection, uuid: str
+) -> Optional[asyncpg.Record]:
     """Запрос для получения текущего состояния счёта клиента.
 
     :param connection: соединение

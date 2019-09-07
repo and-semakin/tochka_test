@@ -25,7 +25,7 @@ def main() -> None:
     parser.add_argument("mode", type=Mode, choices=list(Mode))
     args = parser.parse_args()
 
-    logging.info(f'Starting {args.mode}...')
+    logging.info(f"Starting {args.mode}...")
     if args.mode == Mode.SERVER:
         web.run_app(create_app(), port=80)
     elif args.mode == Mode.UNHOLDER:
