@@ -4,22 +4,9 @@ import logging
 import asyncpg
 
 from app.settings import Settings
+from app.queries import query_unhold_all
 
 logging.basicConfig(level=logging.INFO)
-
-
-async def subtract(connection: asyncpg.Connection) -> None:
-    logging.info("Subtracting holds from balances...")
-    async with connection.transaction():
-        await connection.execute(
-            """
-            UPDATE
-                client
-            SET
-                balance = balance - hold,
-                hold = 0
-            """
-        )
 
 
 async def periodic_subtract() -> None:
@@ -28,4 +15,5 @@ async def periodic_subtract() -> None:
     connection = await asyncpg.connect(dsn=settings.pg_dsn)
     while True:
         await asyncio.sleep(settings.subtract_interval)
-        await subtract(connection)
+        logging.info("Subtracting holds from balances...")
+        await query_unhold_all(connection)

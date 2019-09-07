@@ -6,7 +6,7 @@ import asyncpg
 import pytest
 
 from app.main import init_connection
-from app.queries import query_status, query_add, query_subtract, NotEnoughMoneyError
+from app.queries import query_status, query_add, query_subtract, query_unhold_all, NotEnoughMoneyError
 from app.settings import Settings
 
 
@@ -150,3 +150,23 @@ class TestServerQueries:
         client_status = await query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 100)
         assert client_status['balance'] == 1700  # баланс не изменился
         assert client_status['hold'] == 400  # увеличился холд
+
+    async def test_unhold_all(self, test_data, connection: asyncpg.Connection) -> None:
+        """Проверить функцию, обновляющую баланс клиентов и очищающую холды.
+
+        :param test_data: добавить тестовые данные в таблицу
+        :param connection: соединение к базе
+        """
+        await query_unhold_all(connection)
+
+        expected_balance = {
+            '26c940a1-7228-4ea2-a3bc-e6460b172040': 1400,
+            '7badc8f8-65bc-449a-8cde-855234ac63e1': 0,
+            '5597cc3d-c948-48a0-b711-393edf20d9c0': -290,
+            '867f0924-a917-4711-939b-90b179a96392': 999_999,
+        }
+
+        for uuid, balance in expected_balance.items():
+            client_status = await query_status(connection, uuid)
+            assert client_status['balance'] == balance
+            assert client_status['hold'] == 0

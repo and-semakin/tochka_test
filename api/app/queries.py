@@ -70,3 +70,20 @@ async def query_status(connection: asyncpg.Connection, uuid: str) -> Optional[as
         uuid,
     )
     return row
+
+
+async def query_unhold_all(connection: asyncpg.Connection) -> None:
+    """Запрос для обновления баланса и обнуления холда у всех клиентов.
+
+    :param connection: соединение
+    """
+    async with connection.transaction():
+        await connection.execute(
+            """
+            UPDATE
+                client
+            SET
+                balance = balance - hold,
+                hold = 0
+            """
+        )
