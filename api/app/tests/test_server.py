@@ -5,7 +5,7 @@ import asyncio
 import pytest
 import asyncpg
 
-from app.main import _check_args, init_connection, _query_status, _query_add
+from app.main import _check_args, init_connection, _query_status, _query_add, _query_subtract, NotEnoughMoneyError
 from app.settings import Settings
 
 
@@ -186,5 +186,34 @@ class TestServerQueries:
         assert client_status['balance'] == 2700
         assert client_status['hold'] == 300
 
-    async def test_subtract(self) -> None:
-        pass
+    async def test_subtract(self, test_data, connection: asyncpg.Connection) -> None:
+        """Проверить запрос снятие денег со счёта клиента.
+
+        :param test_data: добавить тестовые данные в таблицу
+        :param connection: соединение к базе
+        """
+        # запрос со снятием на 0 не изменяет ничего
+        client_status = await _query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 0)
+        assert client_status['id'] == '26c940a1-7228-4ea2-a3bc-e6460b172040'
+        assert client_status['name'] == 'Петров Иван Сергеевич'
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+        assert client_status['is_open'] is True
+
+        # запрос со снятием на отрицательное число денег тоже не изменяет ничего
+        client_status = await _query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', -1000)
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+
+        # если попытаться снять больше, чем у клиента есть денег на счёте, то произойдет исключение
+        with pytest.raises(NotEnoughMoneyError):
+            await _query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 2000)
+        # при этом данные не изменятся
+        client_status = await _query_status(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040')
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+
+        # успешный запрос
+        client_status = await _query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 100)
+        assert client_status['balance'] == 1700  # баланс не изменился
+        assert client_status['hold'] == 400  # увеличился холд
