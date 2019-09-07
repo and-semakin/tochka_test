@@ -6,8 +6,6 @@ import asyncpg
 from app.settings import Settings
 from app.queries import query_unhold_all
 
-logging.basicConfig(level=logging.INFO)
-
 
 async def periodic_unhold_all() -> None:
     logging.info("Starting...")

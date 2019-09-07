@@ -71,6 +71,7 @@ async def ping(request: web.Request) -> web.Response:
 
 async def kill(request: web.Request) -> web.Response:
     """Хэндлер, который убивает сервер, чтобы проверить настройку перезапуска."""
+    logging.warning('OMG, I am dying!')
     sys.exit(42)
 
 

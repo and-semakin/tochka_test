@@ -22,22 +22,14 @@ services:
       - APP_POSTGRES_USER=bank
       - APP_POSTGRES_PASSWORD=bank
       - APP_POSTGRES_DB=bank
-    # TODO: убрать, когда прекратится разработка
-    command: pipenv run adev runserver --port 80 app
+    # расскомментить эту строку, чтобы включить горячую перезагрузку сервера
+    # command: pipenv run adev runserver --port 80 app
     volumes:
       - "./api/:/api"
     depends_on:
       - postgres
       - nginx
-    restart: on-failure
-# TODO: разобраться, как рестартить сервисы
-# WARNING: Some services (api) use the 'deploy' key, which will be ignored.
-# Compose does not support 'deploy' configuration - use `docker stack deploy` to deploy to a swarm
-#    deploy:
-#      replicas: 2
-#      restart_policy:
-#        condition: on-failure
-#        max_attempts: 3
+    restart: on-failure:3
 
   unholder:
     build: './api'
