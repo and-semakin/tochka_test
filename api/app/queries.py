@@ -1,4 +1,5 @@
 from typing import Optional
+
 import asyncpg
 
 
@@ -40,7 +41,7 @@ async def query_subtract(
 
     :param connection: соединение
     :param uuid: идентификатор клиента
-    :param how_much: количество копеек, которые нужно прибавить на баланс клиента
+    :param how_much: количество копеек, которые нужно снять с баланса клиента
     :raises NotEnoughMoneyError: если на счёте клиента недостаточно денег
     """
     async with connection.transaction():

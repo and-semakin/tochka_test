@@ -8,6 +8,7 @@ from app.queries import query_unhold_all
 
 
 async def periodic_unhold_all() -> None:
+    """Обнулять холд и обновлять баланс клиентов каждые `unhold_all_interval` секунд."""
     logging.info("Starting...")
     settings = Settings()
     connection = await asyncpg.connect(dsn=settings.pg_dsn)

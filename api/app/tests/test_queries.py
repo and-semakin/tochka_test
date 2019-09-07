@@ -32,10 +32,10 @@ class TestServerQueries:
 
     settings = Settings()
 
-    @staticmethod
+    @classmethod
     @run_until_complete
     async def setup_class(cls) -> None:
-        """До начала тестов копируем базу и очищаем таблицу client."""
+        """До начала тестов копируем базу."""
         connection = await asyncpg.connect(dsn=cls.settings.pg_dsn)
         try:
             await connection.execute(
@@ -64,6 +64,7 @@ class TestServerQueries:
 
     @pytest.fixture()
     async def connection(self) -> asyncpg.Connection:
+        """Фикстура, возвращающая соединение к тестовой базе данных."""
         connection = await asyncpg.connect(dsn=self.settings.pg_test_dsn)
         try:
             await init_connection(connection)
@@ -73,6 +74,7 @@ class TestServerQueries:
 
     @pytest.fixture()
     async def test_data(self, connection) -> None:
+        """Очистить таблицу `client` и наполнить её заново тестовыми данными."""
         await connection.execute("TRUNCATE client")
         await connection.execute(
             """
