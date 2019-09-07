@@ -1,4 +1,4 @@
-from typing import Any, List, Callable, Mapping
+from typing import Any, List, Callable, Mapping, Optional
 import sys
 import random
 import functools
@@ -82,7 +82,7 @@ async def add(request: web.Request, uuid: str, how_much: int) -> web.Response:
     """
     async with request.app["pg"].acquire() as connection:
         async with connection.transaction():
-            row: asyncpg.Record = await connection.fetchrow(
+            row: Optional[asyncpg.Record] = await connection.fetchrow(
                 """
                 UPDATE
                     client
@@ -109,7 +109,7 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
     """
     async with request.app["pg"].acquire() as connection:
         async with connection.transaction():
-            row: asyncpg.Record = await connection.fetchrow(
+            row: Optional[asyncpg.Record] = await connection.fetchrow(
                 """
                 UPDATE
                     client
@@ -129,15 +129,25 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
             return json_response(dict(row.items()))
 
 
+async def _query_status(connection: asyncpg.Connection, uuid: str) -> Optional[asyncpg.Record]:
+    """Запрос для получения текущего состояния счёта клинта.
+
+    :param connection: соединение
+    :param uuid: идентификатор клиента
+    """
+    row: Optional[asyncpg.Record] = await connection.fetchrow(
+        """
+        SELECT * FROM client WHERE id = $1
+        """,
+        uuid,
+    )
+    return row
+
+
 async def status(request: web.Request, uuid: str) -> web.Response:
-    """Получить данные о текущем состоянии счетов клиентов."""
+    """Получить данные о текущем состоянии счёта клиента."""
     async with request.app["pg"].acquire() as connection:
-        row: asyncpg.Record = await connection.fetchrow(
-            """
-            SELECT * FROM client WHERE id = $1
-            """,
-            uuid,
-        )
+        row: Optional[asyncpg.Record] = await _query_status(connection, uuid)
         if not row:
             raise web.HTTPNotFound()
         return json_response(dict(row.items()))

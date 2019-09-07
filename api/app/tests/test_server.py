@@ -4,18 +4,16 @@ import asyncio
 
 import pytest
 import asyncpg
-import aiohttp
 
-from app.main import _check_args, create_app
+from app.main import _check_args, init_connection, _query_status
 from app.settings import Settings
 
 
 def run_until_complete(function: Callable) -> Callable:
-    """Декоратор выполняющий функцию в евентлупе."""
+    """Декоратор, выполняющий функцию в евентлупе."""
 
     @functools.wraps(function)
     def wrapper(*args: Any, **kwargs: Any) -> Any:
-        """Выполняем функцию в евентлупе."""
         return asyncio.get_event_loop().run_until_complete(function(*args, **kwargs))
 
     return wrapper
@@ -92,12 +90,12 @@ test_settings = Settings()
 
 
 @pytest.mark.asyncio
-class TestServer:
-    """Интеграционные тесты, проверяющие работу API."""
+class TestServerQueries:
+    """Тесты для запросов к БД, которые выполняются из API."""
 
     @staticmethod
     @run_until_complete
-    async def setup_class() -> None:
+    async def setup_class(cls) -> None:
         """До начала тестов копируем базу и очищаем таблицу client."""
         connection = await asyncpg.connect(dsn=test_settings.pg_dsn)
         try:
@@ -114,7 +112,12 @@ class TestServer:
                 ''',
                 test_settings.postgres_db
             )
-            await connection.execute(f'CREATE DATABASE {test_settings.postgres_test_db} WITH TEMPLATE {test_settings.postgres_db}')
+            await connection.execute(
+                f'''
+                CREATE DATABASE {test_settings.postgres_test_db}
+                WITH TEMPLATE {test_settings.postgres_db}
+                '''
+            )
         finally:
             await connection.close()
 
@@ -122,6 +125,7 @@ class TestServer:
     async def connection(self) -> asyncpg.Connection:
         connection = await asyncpg.connect(dsn=test_settings.pg_test_dsn)
         try:
+            await init_connection(connection)
             yield connection
         finally:
             await connection.close()
@@ -142,25 +146,21 @@ class TestServer:
             '''
         )
 
-    @pytest.fixture(scope="function")
-    async def client(self, aiohttp_client, event_loop) -> aiohttp.ClientSession:
-        settings = test_settings.copy()
-        settings.postgres_db = settings.postgres_test_db
-        app = await create_app(settings)
-        client = await (await aiohttp_client(event_loop))(app)
-        try:
-            yield client
-        finally:
-            await app.shutdown()
-            await app.cleanup()
-            await asyncio.sleep(0.5)
+    async def test_status(self, test_data, connection: asyncpg.Connection) -> None:
+        """Проверить запрос получения статуса.
 
-    async def test_ping(self, client: aiohttp.ClientSession) -> None:
-        resp = await asyncio.wait_for(client.get('/api/ping'), 5)
-        assert resp.status == 200
+        :param test_data: добавить тестовые данные в таблицу
+        :param connection: соединение к базе
+        """
+        not_existing_client_status = await _query_status(connection, '00000000-0000-0000-0000-000000000000')
+        assert not_existing_client_status is None
 
-    async def test_status(self) -> None:
-        pass
+        client_status = await _query_status(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040')
+        assert client_status['id'] == '26c940a1-7228-4ea2-a3bc-e6460b172040'
+        assert client_status['name'] == 'Петров Иван Сергеевич'
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+        assert client_status['is_open'] is True
 
     async def test_add(self) -> None:
         pass
