@@ -101,6 +101,10 @@ class TestServerQueries:
         :param test_data: добавить тестовые данные в таблицу
         :param connection: соединение к базе
         """
+        # пополнение несуществующего счёта возвращает None
+        client_status = await query_add(connection, '00000000-0000-0000-0000-000000000000', 1000)
+        assert client_status is None
+
         # запрос с пополнением на 0 не изменяет ничего
         client_status = await query_add(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 0)
         assert client_status['id'] == '26c940a1-7228-4ea2-a3bc-e6460b172040'
@@ -119,12 +123,23 @@ class TestServerQueries:
         assert client_status['balance'] == 2700
         assert client_status['hold'] == 300
 
+        # пополнение закрытого счёта возвращает None
+        client_status = await query_add(connection, '867f0924-a917-4711-939b-90b179a96392', 1000)
+        assert client_status is None
+        # баланс счёта не изменился
+        client_status = await query_status(connection, '867f0924-a917-4711-939b-90b179a96392')
+        assert client_status['balance'] == 1_000_000
+
     async def test_subtract(self, test_data, connection: asyncpg.Connection) -> None:
         """Проверить запрос снятие денег со счёта клиента.
 
         :param test_data: добавить тестовые данные в таблицу
         :param connection: соединение к базе
         """
+        # снятие денег с несуществующего счёта возвращает None
+        client_status = await query_subtract(connection, '00000000-0000-0000-0000-000000000000', 1000)
+        assert client_status is None
+
         # запрос со снятием на 0 не изменяет ничего
         client_status = await query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 0)
         assert client_status['id'] == '26c940a1-7228-4ea2-a3bc-e6460b172040'
@@ -150,6 +165,13 @@ class TestServerQueries:
         client_status = await query_subtract(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 100)
         assert client_status['balance'] == 1700  # баланс не изменился
         assert client_status['hold'] == 400  # увеличился холд
+
+        # снятие денег с закрытого счёта возвращает None
+        client_status = await query_subtract(connection, '867f0924-a917-4711-939b-90b179a96392', 1000)
+        assert client_status is None
+        # баланс счёта не изменился
+        client_status = await query_status(connection, '867f0924-a917-4711-939b-90b179a96392')
+        assert client_status['balance'] == 1_000_000
 
     async def test_unhold_all(self, test_data, connection: asyncpg.Connection) -> None:
         """Проверить функцию, обновляющую баланс клиентов и очищающую холды.

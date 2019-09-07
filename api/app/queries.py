@@ -21,7 +21,8 @@ async def query_add(connection: asyncpg.Connection, uuid: str, how_much: int) ->
             SET
                 balance = balance + GREATEST(0, $2)
             WHERE
-                id = $1
+                id = $1 AND 
+                is_open = TRUE
             RETURNING *
             """,
             uuid,
@@ -46,13 +47,14 @@ async def query_subtract(connection: asyncpg.Connection, uuid: str, how_much: in
             SET
                 hold = hold + GREATEST(0, $2)
             WHERE
-                id = $1
+                id = $1 AND
+                is_open = TRUE
             RETURNING *
             """,
             uuid,
             how_much,
         )
-        if row["balance"] - row["hold"] < 0:
+        if row is not None and row["balance"] - row["hold"] < 0:
             raise NotEnoughMoneyError
         return row
 
