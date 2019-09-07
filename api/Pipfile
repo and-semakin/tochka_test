@@ -7,10 +7,9 @@ verify_ssl = true
 aiohttp-devtools = "*"
 mypy = "*"
 black = "*"
-pytest = "*"
+pytest = "==4.1.0"
 flake8 = "*"
 pytest-asyncio = "*"
-pytest-aiohttp = "*"
 
 [packages]
 aiohttp = "*"
