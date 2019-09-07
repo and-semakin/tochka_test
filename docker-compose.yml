@@ -39,7 +39,7 @@ services:
 #        condition: on-failure
 #        max_attempts: 3
 
-  subtractor:
+  unholder:
     build: './api'
     environment:
       - APP_POSTGRES_HOST=postgres
@@ -47,8 +47,8 @@ services:
       - APP_POSTGRES_USER=bank
       - APP_POSTGRES_PASSWORD=bank
       - APP_POSTGRES_DB=bank
-      - APP_SUBTRACT_INTERVAL=600
-    command: pipenv run python -m app subtractor
+      - APP_UNHOLD_ALL_INTERVAL=600
+    command: pipenv run python -m app unholder
     volumes:
       - "./api/:/api"
     depends_on:

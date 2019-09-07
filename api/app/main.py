@@ -92,8 +92,8 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
     """Пополнить баланс указанного клиента.
 
     :param request: запрос
-    :param uuid: идентификатор пользователя
-    :param how_much: количество копеек, которые нужно снять с баланса пользователя
+    :param uuid: идентификатор клиента
+    :param how_much: количество копеек, которые нужно снять с баланса клиента
     """
     async with request.app["pg"].acquire() as connection:
         try:
