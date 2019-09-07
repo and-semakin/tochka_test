@@ -5,7 +5,7 @@ import asyncio
 import pytest
 import asyncpg
 
-from app.main import _check_args, init_connection, _query_status
+from app.main import _check_args, init_connection, _query_status, _query_add
 from app.settings import Settings
 
 
@@ -162,8 +162,29 @@ class TestServerQueries:
         assert client_status['hold'] == 300
         assert client_status['is_open'] is True
 
-    async def test_add(self) -> None:
-        pass
+    async def test_add(self, test_data, connection: asyncpg.Connection) -> None:
+        """Проверить запрос пополнения счёта клиента.
+
+        :param test_data: добавить тестовые данные в таблицу
+        :param connection: соединение к базе
+        """
+        # запрос с пополнением на 0 не изменяет ничего
+        client_status = await _query_add(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 0)
+        assert client_status['id'] == '26c940a1-7228-4ea2-a3bc-e6460b172040'
+        assert client_status['name'] == 'Петров Иван Сергеевич'
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+        assert client_status['is_open'] is True
+
+        # запрос с пополнением на отрицательное число денег тоже не изменяет ничего
+        client_status = await _query_add(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', -1000)
+        assert client_status['balance'] == 1700
+        assert client_status['hold'] == 300
+
+        # успешный запрос
+        client_status = await _query_add(connection, '26c940a1-7228-4ea2-a3bc-e6460b172040', 1000)
+        assert client_status['balance'] == 2700
+        assert client_status['hold'] == 300
 
     async def test_subtract(self) -> None:
         pass

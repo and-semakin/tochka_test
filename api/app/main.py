@@ -73,35 +73,46 @@ async def kill(request: web.Request) -> web.Response:
     sys.exit(42)
 
 
+async def _query_add(connection: asyncpg.Connection, uuid: str, how_much: int) -> Optional[asyncpg.Record]:
+    """Запрос для пополнения счёта клинта.
+
+    :param connection: соединение
+    :param uuid: идентификатор клиента
+    :param how_much: количество копеек, которые нужно прибавить на баланс клиента
+    """
+    async with connection.transaction():
+        row = await connection.fetchrow(
+            """
+            UPDATE
+                client
+            SET
+                balance = balance + GREATEST(0, $2)
+            WHERE
+                id = $1
+            RETURNING *
+            """,
+            uuid,
+            how_much,
+        )
+        return row
+
+
 async def add(request: web.Request, uuid: str, how_much: int) -> web.Response:
-    """Пополнить баланс указанного пользователя.
+    """Пополнить баланс указанного клиента.
 
     :param request: запрос
-    :param uuid: идентификатор пользователя
-    :param how_much: количество копеек, которые нужно прибавить на баланс пользователя
+    :param uuid: идентификатор клиента
+    :param how_much: количество копеек, которые нужно прибавить на баланс клиента
     """
     async with request.app["pg"].acquire() as connection:
-        async with connection.transaction():
-            row: Optional[asyncpg.Record] = await connection.fetchrow(
-                """
-                UPDATE
-                    client
-                SET
-                    balance = balance + $2
-                WHERE
-                    id = $1
-                RETURNING *
-                """,
-                uuid,
-                how_much,
-            )
-            if not row:
-                raise web.HTTPNotFound()
-            return json_response(dict(row.items()))
+        row = await _query_add(connection, uuid, how_much)
+        if not row:
+            raise web.HTTPNotFound()
+        return json_response(dict(row.items()))
 
 
 async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Response:
-    """Пополнить баланс указанного пользователя.
+    """Пополнить баланс указанного клиента.
 
     :param request: запрос
     :param uuid: идентификатор пользователя
@@ -130,7 +141,7 @@ async def subtract(request: web.Request, uuid: str, how_much: int) -> web.Respon
 
 
 async def _query_status(connection: asyncpg.Connection, uuid: str) -> Optional[asyncpg.Record]:
-    """Запрос для получения текущего состояния счёта клинта.
+    """Запрос для получения текущего состояния счёта клиента.
 
     :param connection: соединение
     :param uuid: идентификатор клиента
