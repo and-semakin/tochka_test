@@ -54,10 +54,3 @@ services:
     depends_on:
       - postgres
     restart: always
-
-  dashboard:
-    build: './dashboard'
-    environment:
-      - API_HOST=http://api/
-    depends_on:
-      - nginx
